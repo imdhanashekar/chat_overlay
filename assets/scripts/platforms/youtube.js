@@ -357,11 +357,22 @@ const SETTINGS = {
 	const apiRequestDelay = 200;
 	const messageRenderDelay = 200;
 	const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-	const initialChatParams = {
-		handle: params.get("handle"),
-		id: params.get("id"),
-		channelId: params.get("channelId")
-	};
+	const initialChatParams = {};
+	const rawParam = params.get("handle") || params.get("id") || params.get("channelId") || params.get("value"); // "value" como fallback opcional
+
+	if (rawParam) {
+		if (rawParam.startsWith("UC") && rawParam.length === 24) {
+			initialChatParams.channelId = rawParam; // É um Channel ID
+		} else if (rawParam.startsWith("@")) {
+			initialChatParams.handle = rawParam; // É um Handle
+		} else if (rawParam.length === 11 && /^[A-Za-z0-9\-_]+$/.test(rawParam)) {
+			initialChatParams.id = rawParam; // É um Video ID
+		} else {
+			console.log("Parâmetro fornecido não corresponde a nenhum padrão conhecido:", rawParam);
+		}
+	} else {
+		console.log("Nenhum parâmetro de chat fornecido na URL");
+	}
 
 	// Capturar o idioma do navegador
 	const browserLanguage = navigator.language || "en-US"; // Padrão para "en-US" se não disponível
@@ -842,36 +853,36 @@ const SETTINGS = {
 				}
 
 				const messageDiv = document.createElement("div");
-    messageDiv.id = data.id;
-    messageDiv.classList.add("chat_line");
-    if (author.id) messageDiv.setAttribute("data-author-id", author.id);
+				messageDiv.id = data.id;
+				messageDiv.classList.add("chat_line");
+				if (author.id) messageDiv.setAttribute("data-author-id", author.id);
 
-    if (!data.isEngagement && author.id && !userColors[author.id]) {
-        userColors[author.id] = generateUserColor(author.id);
-    }
-    if (!data.isEngagement && !userAvatars[author.id]) {
-        userAvatars[author.id] = author.name.trim(); // Garante que o nome não tenha espaços extras
-    }
+				if (!data.isEngagement && author.id && !userColors[author.id]) {
+					userColors[author.id] = generateUserColor(author.id);
+				}
+				if (!data.isEngagement && !userAvatars[author.id]) {
+					userAvatars[author.id] = author.name.trim(); // Garante que o nome não tenha espaços extras
+				}
 
-    const badgeHTML = renderBadges(badges.reverse()).trim(); // Remove espaços extras do resultado das badges
-    const messageHTML = replaceEmotes(emotes, message);
+				const badgeHTML = renderBadges(badges.reverse()).trim(); // Remove espaços extras do resultado das badges
+				const messageHTML = replaceEmotes(emotes, message);
 
-    if (data.isEngagement) {
-        messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
-    } else if (author.id) {
-        // Construção do HTML com espaçamento controlado
-        const usernameHTML = userHighlights[author.id]
-            ? `<span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`
-            : `<span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`;
+				if (data.isEngagement) {
+					messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
+				} else if (author.id) {
+					// Construção do HTML com espaçamento controlado
+					const usernameHTML = userHighlights[author.id]
+						? `<span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`
+						: `<span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`;
 
-        // Montagem sem espaços implícitos
-        messageDiv.innerHTML = `${badgeHTML} ${usernameHTML}<span class="colon">:</span><span class="message"> ${messageHTML}</span>`;
-    } else {
-        messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
-    }
+					// Montagem sem espaços implícitos
+					messageDiv.innerHTML = `${badgeHTML} ${usernameHTML}<span class="colon">:</span><span class="message"> ${messageHTML}</span>`;
+				} else {
+					messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
+				}
 
-    return messageDiv;
-}
+				return messageDiv;
+			}
 
 			if (actions && actions.length > 0) {
 				let renderDelay = 0;

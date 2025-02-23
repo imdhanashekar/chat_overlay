@@ -9,9 +9,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap">
     <script>
         const loadParams = new URLSearchParams(window.location.search);
-        const hasYouTubeParams = loadParams.has("handle") || loadParams.has("id") || loadParams.has("channelId");
-        const hasTwitchParams = loadParams.has("twitch") && loadParams.has("token");
-        const hasKickParams = loadParams.has("kick");
 
         // Função para carregar um script e retornar uma Promise
         function loadScript(src) {
@@ -23,6 +20,33 @@
                 document.head.appendChild(script);
             });
         }
+
+        // Verificação de parâmetros para YouTube com detecção automática
+        const hasYouTubeParams = (() => {
+            const possibleParams = ["handle", "id", "channelId", "value"]; // "value" como fallback opcional
+            for (const paramName of possibleParams) {
+                const rawParam = loadParams.get(paramName);
+                if (rawParam) {
+                    if (rawParam.startsWith("UC") && rawParam.length === 24) {
+                        return true; // Channel ID do YouTube
+                    } else if (rawParam.startsWith("@")) {
+                        return true; // Handle do YouTube
+                    } else if (rawParam.length === 11 && /^[A-Za-z0-9\-_]+$/.test(rawParam)) {
+                        return true; // Video ID do YouTube
+                    }
+                }
+            }
+            return loadParams.has("handle") || loadParams.has("id") || loadParams.has("channelId");
+        })();
+
+        // Verificação de parâmetros para Twitch
+        const hasTwitchParams = (() => {
+            const twitchParam = loadParams.get("twitch") || loadParams.get("channel");
+            return twitchParam && loadParams.has("token");
+        })();
+
+        // Verificação de parâmetros para Kick (sem alterações)
+        const hasKickParams = loadParams.has("kick");
 
         // Carregar scripts do YouTube se os parâmetros existirem
         if (hasYouTubeParams) {

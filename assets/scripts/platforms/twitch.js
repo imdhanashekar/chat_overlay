@@ -516,9 +516,10 @@ Chat = {
 };
 
 $(document).ready(function () {
-    if ($.QueryString.twitch) {
-        Chat.connect($.QueryString.twitch.toLowerCase());
+    const channelParam = $.QueryString.twitch || $.QueryString.channel; // Tenta "twitch" primeiro, depois "channel"
+    if (channelParam) {
+        Chat.connect(channelParam.toLowerCase());
     } else {
-        console.log('Nenhum canal Twitch fornecido na URL (?twitch)');
+        console.log('Nenhum canal fornecido na URL (?twitch ou ?channel)');
     }
 });
