@@ -842,42 +842,36 @@ const SETTINGS = {
 				}
 
 				const messageDiv = document.createElement("div");
-				messageDiv.id = data.id;
-				messageDiv.classList.add("chat_line"); // Adiciona a classe "chat_line"
-				if (author.id) messageDiv.setAttribute("data-author-id", author.id);
+    messageDiv.id = data.id;
+    messageDiv.classList.add("chat_line");
+    if (author.id) messageDiv.setAttribute("data-author-id", author.id);
 
-				if (!data.isEngagement && author.id && !userColors[author.id]) {
-					userColors[author.id] = generateUserColor(author.id);
-				}
-				if (!data.isEngagement && !userAvatars[author.id]) {
-					userAvatars[author.id] = author.name;
-				}
+    if (!data.isEngagement && author.id && !userColors[author.id]) {
+        userColors[author.id] = generateUserColor(author.id);
+    }
+    if (!data.isEngagement && !userAvatars[author.id]) {
+        userAvatars[author.id] = author.name.trim(); // Garante que o nome não tenha espaços extras
+    }
 
-				const badgeHTML = renderBadges(badges.reverse());
-				const messageHTML = replaceEmotes(emotes, message);
+    const badgeHTML = renderBadges(badges.reverse()).trim(); // Remove espaços extras do resultado das badges
+    const messageHTML = replaceEmotes(emotes, message);
 
-				if (data.isEngagement) {
-					messageDiv.innerHTML = `<span class="message">${messageHTML}</span>`;
-				} else if (author.id) {
-					if (userHighlights[author.id]) {
-						messageDiv.innerHTML = `
-                            ${badgeHTML}
-                            <span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span><span class="username colon" style="margin-left:4px;">:</span>
-                            <span class="message">${messageHTML}</span>
-                        `; // <span class="colon">:</span>
-					} else {
-						messageDiv.innerHTML = `
-                            ${badgeHTML}
-                            <span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span><span class="username colon" style="margin-left:4px;">:</span>
-                            <span class="message">${messageHTML}</span>
-                        `; // <span class="colon">:</span>
-					}
-				} else {
-					messageDiv.innerHTML = `<span class="message">${messageHTML}</span>`;
-				}
+    if (data.isEngagement) {
+        messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
+    } else if (author.id) {
+        // Construção do HTML com espaçamento controlado
+        const usernameHTML = userHighlights[author.id]
+            ? `<span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`
+            : `<span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`;
 
-				return messageDiv;
-			}
+        // Montagem sem espaços implícitos
+        messageDiv.innerHTML = `${badgeHTML} ${usernameHTML}<span class="colon">:</span><span class="message"> ${messageHTML}</span>`;
+    } else {
+        messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
+    }
+
+    return messageDiv;
+}
 
 			if (actions && actions.length > 0) {
 				let renderDelay = 0;
