@@ -1,7 +1,3 @@
-Below is the updated README.md with the modifications reflecting the recent changes, particularly regarding the YouTube `handle` parameter, which now accepts values with or without the "@" prefix. The content is provided in both English and Portuguese, as per the original structure.
-
----
-
 ### README.md (English)
 
 # Livestream Chat Overlay
