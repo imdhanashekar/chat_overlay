@@ -1,5 +1,5 @@
-(function($) {
-    $.QueryString = (function(paramsArray) {
+(function ($) {
+    $.QueryString = (function (paramsArray) {
         let params = {};
         for (let i = 0; i < paramsArray.length; ++i) {
             let param = paramsArray[i].split('=', 2);
@@ -57,11 +57,11 @@ Chat = {
         bots: ['streamelements', 'streamlabs', 'nightbot', 'moobot', 'fossabot']
     },
 
-    loadEmotes: function(channelID) {
+    loadEmotes: function (channelID) {
         Chat.info.emotes = {};
         // Load BTTV, FFZ emotes
         ['emotes/global', 'users/twitch/' + encodeURIComponent(channelID)].forEach(endpoint => {
-            $.getJSON('https://api.betterttv.net/3/cached/frankerfacez/' + endpoint).done(function(res) {
+            $.getJSON('https://api.betterttv.net/3/cached/frankerfacez/' + endpoint).done(function (res) {
                 res.forEach(emote => {
                     if (emote.images['4x']) {
                         var imageUrl = emote.images['4x'];
@@ -78,9 +78,9 @@ Chat = {
                 });
             });
         });
-    
+
         ['emotes/global', 'users/twitch/' + encodeURIComponent(channelID)].forEach(endpoint => {
-            $.getJSON('https://api.betterttv.net/3/cached/' + endpoint).done(function(res) {
+            $.getJSON('https://api.betterttv.net/3/cached/' + endpoint).done(function (res) {
                 if (!Array.isArray(res)) {
                     res = res.channelEmotes.concat(res.sharedEmotes);
                 }
@@ -93,40 +93,40 @@ Chat = {
                 });
             });
         });
-    
+
         // Novo endpoint 7TV (v3)
         ['emote-sets/global', 'users/twitch/' + encodeURIComponent(channelID)].forEach(endpoint => {
-            $.getJSON('https://7tv.io/v3/' + endpoint).done(function(res) {
+            $.getJSON('https://7tv.io/v3/' + endpoint).done(function (res) {
                 let emotes = [];
                 if (endpoint === 'emote-sets/global') {
                     emotes = res.emotes || [];
                 } else {
                     emotes = (res.emote_set && res.emote_set.emotes) ? res.emote_set.emotes : [];
                 }
-    
+
                 emotes.forEach(emote => {
                     if (!emote.data || !emote.data.host || !emote.data.host.files) return; // Ignorar emotes mal formados
-    
+
                     // Selecionar o maior tamanho disponível (4x se existir)
                     const files = emote.data.host.files;
                     const largestFile = files.find(file => file.name === '4x.webp') || files[files.length - 1];
                     const imageUrl = 'https:' + emote.data.host.url + '/' + largestFile.name;
-    
+
                     Chat.info.emotes[emote.name] = {
                         id: emote.id,
                         image: imageUrl,
                         zeroWidth: emote.flags === 1 // Usar flags do nível superior para zero-width
                     };
                 });
-            }).fail(function(jqXHR, textStatus, errorThrown) {
+            }).fail(function (jqXHR, textStatus, errorThrown) {
                 console.error('Erro ao carregar emotes do 7TV para ' + endpoint + ':', textStatus, errorThrown);
             });
         });
     },
 
-    load: function(callback) {
+    load: function (callback) {
         const loadChannel = () => {
-            TwitchAPI('https://api.twitch.tv/helix/users?login=' + Chat.info.channel, Chat.info.token).done(function(res) {
+            TwitchAPI('https://api.twitch.tv/helix/users?login=' + Chat.info.channel, Chat.info.token).done(function (res) {
                 if (res.data.length === 0) {
                     console.error('Canal não encontrado');
                     setTimeout(loadChannel, 60000); // Tentar novamente após 30 segundos
@@ -136,19 +136,19 @@ Chat = {
                 Chat.loadEmotes(Chat.info.channelID);
 
                 // Load badges
-                TwitchAPI('https://api.twitch.tv/helix/chat/badges/global', Chat.info.token).done(function(global) {
+                TwitchAPI('https://api.twitch.tv/helix/chat/badges/global', Chat.info.token).done(function (global) {
                     global.data.forEach(badgeSet => {
                         badgeSet.versions.forEach(version => {
                             Chat.info.badges[badgeSet.set_id + ':' + version.id] = version.image_url_4x;
                         });
                     });
-                    TwitchAPI('https://api.twitch.tv/helix/chat/badges?broadcaster_id=' + encodeURIComponent(Chat.info.channelID), Chat.info.token).done(function(channel) {
+                    TwitchAPI('https://api.twitch.tv/helix/chat/badges?broadcaster_id=' + encodeURIComponent(Chat.info.channelID), Chat.info.token).done(function (channel) {
                         channel.data.forEach(badgeSet => {
                             badgeSet.versions.forEach(version => {
                                 Chat.info.badges[badgeSet.set_id + ':' + version.id] = version.image_url_4x;
                             });
                         });
-                        $.getJSON('https://api.frankerfacez.com/v1/_room/id/' + encodeURIComponent(Chat.info.channelID)).done(function(res) {
+                        $.getJSON('https://api.frankerfacez.com/v1/_room/id/' + encodeURIComponent(Chat.info.channelID)).done(function (res) {
                             if (res.room.moderator_badge) {
                                 Chat.info.badges['moderator:1'] = 'https://cdn.frankerfacez.com/room-badge/mod/' + Chat.info.channel + '/4/rounded';
                             }
@@ -161,31 +161,31 @@ Chat = {
 
                 if (!Chat.info.hideBadges) {
                     $.getJSON('https://api.ffzap.com/v1/supporters')
-                        .done(function(res) {
+                        .done(function (res) {
                             Chat.info.ffzapBadges = res;
                         })
-                        .fail(function() {
+                        .fail(function () {
                             Chat.info.ffzapBadges = [];
                         });
                     $.getJSON('https://api.betterttv.net/3/cached/badges')
-                        .done(function(res) {
+                        .done(function (res) {
                             Chat.info.bttvBadges = res;
                         })
-                        .fail(function() {
+                        .fail(function () {
                             Chat.info.bttvBadges = [];
                         });
 
                     $.getJSON('https://api.chatterino.com/badges')
-                        .done(function(res) {
+                        .done(function (res) {
                             Chat.info.chatterinoBadges = res.badges;
                         })
-                        .fail(function() {
+                        .fail(function () {
                             Chat.info.chatterinoBadges = [];
                         });
                 }
 
                 // Load cheers images
-                TwitchAPI("https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=" + Chat.info.channelID, Chat.info.token).done(function(res) {
+                TwitchAPI("https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=" + Chat.info.channelID, Chat.info.token).done(function (res) {
                     res.data.forEach(cheer => {
                         Chat.info.cheers[cheer.prefix] = {};
                         cheer.tiers.forEach(tier => {
@@ -198,7 +198,7 @@ Chat = {
                 });
 
                 callback(true);
-            }).fail(function() {
+            }).fail(function () {
                 console.error('Erro ao carregar canal');
                 setTimeout(loadChannel, 60000); // Tentar novamente após 30 segundos
             });
@@ -207,7 +207,7 @@ Chat = {
         loadChannel();
     },
 
-    update: setInterval(function() {
+    update: setInterval(function () {
         if (Chat.info.lines.length > 0) {
             var lines = Chat.info.lines.join('');
 
@@ -219,7 +219,7 @@ Chat = {
 
                 var $animDiv = $('<div></div>');
                 $('#chat').append($animDiv);
-                $animDiv.animate({ "height": auxHeight }, 150, function() {
+                $animDiv.animate({ "height": auxHeight }, 150, function () {
                     $(this).remove();
                     $('#chat').append(lines);
                 });
@@ -235,16 +235,16 @@ Chat = {
         } else if (Chat.info.fade) {
             var messageTime = $('.chat_line').eq(0).data('time');
             if ((Date.now() - messageTime) / 1000 >= Chat.info.fade) {
-                $('.chat_line').eq(0).fadeOut(function() {
+                $('.chat_line').eq(0).fadeOut(function () {
                     $(this).remove();
                 });
             }
         }
     }, 200),
 
-    loadUserBadges: function(nick, userId) {
+    loadUserBadges: function (nick, userId) {
         Chat.info.userBadges[nick] = [];
-        $.getJSON('https://api.frankerfacez.com/v1/user/' + nick).always(function(res) {
+        $.getJSON('https://api.frankerfacez.com/v1/user/' + nick).always(function (res) {
             if (res.badges) {
                 Object.entries(res.badges).forEach(badge => {
                     var userBadge = {
@@ -294,7 +294,7 @@ Chat = {
         });
     },
 
-    write: function(nick, info, message) {
+    write: function (nick, info, message) {
         if (info) {
             // Criar o container principal do chat
             var $chatLine = $('<div></div>');
@@ -302,9 +302,9 @@ Chat = {
             $chatLine.attr('data-nick', nick);
             $chatLine.attr('data-time', Date.now());
             $chatLine.attr('data-id', info.id);
-    
+
             // Adicionar badges, se existirem e não estiverem escondidos
-            if (!Chat.info.hideBadges && typeof(info.badges) === 'string') {
+            if (!Chat.info.hideBadges && typeof (info.badges) === 'string') {
                 info.badges.split(',').forEach(badge => {
                     var badgeParts = badge.split('/');
                     var badgeKey = badgeParts[0] + ':' + badgeParts[1];
@@ -316,12 +316,12 @@ Chat = {
                     }
                 });
             }
-    
+
             // Adicionar o username com cor e 1 espaço antes
             var $username = $('<span></span>');
             $username.addClass('username');
             var color = info.color;
-            if (typeof(info.color) === 'string') {
+            if (typeof (info.color) === 'string') {
                 if (tinycolor(info.color).getBrightness() <= 50) {
                     color = tinycolor(info.color).lighten(30).toString();
                 }
@@ -332,25 +332,25 @@ Chat = {
             $username.css('color', color);
             $username.html(' ' + (info['display-name'] || nick)); // Adicionar 1 espaço antes do nome
             $chatLine.append($username);
-    
+
             // Adicionar o dois-pontos (colon)
             var $colon = $('<span></span>');
             $colon.addClass('username colon');
             $colon.css('margin-left', '4px');
             $colon.text(': ');
             $chatLine.append($colon);
-    
+
             // Processar a mensagem (emotes, cheers, etc.)
             var $message = $('<span></span>');
             $message.addClass('message');
-    
+
             if (/^\x01ACTION.*\x01$/.test(message)) {
                 $message.css('color', color);
                 message = message.replace(/^\x01ACTION/, '').replace(/\x01$/, '').trim();
             }
-    
+
             var replacements = {};
-            if (typeof(info.emotes) === 'string') {
+            if (typeof (info.emotes) === 'string') {
                 info.emotes.split('/').forEach(emoteData => {
                     var twitchEmote = emoteData.split(':');
                     var indexes = twitchEmote[1].split(',')[0].split('-');
@@ -360,7 +360,7 @@ Chat = {
                     replacements[emoteCode] = '<img class="emote" src="https://static-cdn.jtvnw.net/emoticons/v2/' + twitchEmote[0] + '/default/dark/3.0" />';
                 });
             }
-    
+
             Object.entries(Chat.info.emotes).forEach(emote => {
                 if (message.search(escapeRegExp(emote[0])) > -1) {
                     if (emote[1].upscale) replacements[emote[0]] = '<img class="emote upscale" src="' + emote[1].image + '" />';
@@ -368,9 +368,9 @@ Chat = {
                     else replacements[emote[0]] = '<img class="emote" src="' + emote[1].image + '" />';
                 }
             });
-    
+
             message = escapeHtml(message);
-    
+
             if (info.bits && parseInt(info.bits) > 0) {
                 var bits = parseInt(info.bits);
                 var parsed = false;
@@ -390,21 +390,21 @@ Chat = {
                     }
                 }
             }
-    
+
             var replacementKeys = Object.keys(replacements);
             replacementKeys.sort((a, b) => b.length - a.length);
-    
+
             replacementKeys.forEach(replacementKey => {
                 var regex = new RegExp("(?<!\\S)(" + escapeRegExp(replacementKey) + ")(?!\\S)", 'g');
                 message = message.replace(regex, replacements[replacementKey]);
             });
-    
+
             message = twemoji.parse(message);
             $message.html(message);
-    
+
             // Adicionar zero-width emotes
             var messageNodes = $message.children();
-            messageNodes.each(function(i) {
+            messageNodes.each(function (i) {
                 if (i != 0 && $(this).data('zw') && ($(messageNodes[i - 1]).hasClass('emote') || $(messageNodes[i - 1]).hasClass('emoji')) && !$(messageNodes[i - 1]).data('zw')) {
                     var $container = $('<span></span>');
                     $container.addClass('zero-width_container');
@@ -413,33 +413,33 @@ Chat = {
                     $container.append(messageNodes[i - 1], this);
                 }
             });
-    
+
             $message.html($message.html().trim());
             $chatLine.append($message);
-    
+
             // Adicionar a linha ao array de linhas para renderização
             Chat.info.lines.push($chatLine.wrap('<div>').parent().html());
         }
     },
 
-    clearChat: function() {
+    clearChat: function () {
         document.getElementById("chat").innerHTML = "";
     },
 
-    clearMessage: function(id) {
-        setTimeout(function() {
+    clearMessage: function (id) {
+        setTimeout(function () {
             $('.chat_line[data-id=' + id + ']').remove();
         }, 200);
     },
 
-    connect: function(channel) {
+    connect: function (channel) {
         Chat.info.channel = channel;
 
-        Chat.load(function() {
+        Chat.load(function () {
             console.log('jChat: Connecting to IRC server...');
             var socket = new ReconnectingWebSocket('wss://irc-ws.chat.twitch.tv', 'irc', { reconnectInterval: 2000 });
 
-            socket.onopen = function() {
+            socket.onopen = function () {
                 console.log('jChat: Connected');
                 socket.send('PASS blah\r\n');
                 socket.send('NICK justinfan' + Math.floor(Math.random() * 99999) + '\r\n');
@@ -447,11 +447,11 @@ Chat = {
                 socket.send('JOIN #' + Chat.info.channel + '\r\n');
             };
 
-            socket.onclose = function() {
+            socket.onclose = function () {
                 console.log('jChat: Disconnected');
             };
 
-            socket.onmessage = function(data) {
+            socket.onmessage = function (data) {
                 data.data.split('\r\n').forEach(line => {
                     if (!line) return;
                     var message = window.parseIRC(line);
@@ -468,13 +468,13 @@ Chat = {
                             if (message.tags) Chat.clearMessage(message.tags['target-msg-id']);
                             return;
                         case "CLEARCHAT":
-                            if (message.params[1]) Chat.clearChat;
+                            Chat.clearChat();
                             return;
                         case "PRIVMSG":
                             if (message.params[0] !== '#' + channel || !message.params[1]) return;
                             var nick = message.prefix.split('@')[0].split('!')[0];
 
-                            if (message.params[1].toLowerCase() === "!refreshoverlay" && typeof(message.tags.badges) === 'string') {
+                            if (message.params[1].toLowerCase() === "!refreshoverlay" && typeof (message.tags.badges) === 'string') {
                                 var flag = false;
                                 message.tags.badges.split(',').forEach(badge => {
                                     badge = badge.split('/');
@@ -515,7 +515,7 @@ Chat = {
     }
 };
 
-$(document).ready(function() {
+$(document).ready(function () {
     if ($.QueryString.twitch) {
         Chat.connect($.QueryString.twitch.toLowerCase());
     } else {
