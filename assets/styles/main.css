@@ -15,40 +15,58 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    overflow:hidden;
+    overflow: hidden;
     position: relative;
     font-family: "Nunito", sans-serif;
     color: #fff;
 }
 
-@keyframes anim {
+@keyframes slide_1 {
     0% {
         opacity: 0;
         transform: translateY(16px);
-        /* ComeÃ§a deslocado para baixo */
     }
 
     0.6578947368421052% {
         opacity: 1;
         transform: translateY(0);
-        /* Volta Ã  posiÃ§Ã£o original */
     }
 
     99.3421052631579% {
         opacity: 1;
         transform: translateY(0);
-        /* Permanece na posiÃ§Ã£o */
     }
 
     100% {
         opacity: 0;
         transform: translateY(-16px);
-        /* Move para cima */
+    }
+}
+
+@keyframes slide_2 {
+    0% {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+
+    0.6578947368421052% {
+        opacity: 1;
+        transform: none;
+    }
+
+    99.3421052631579% {
+        opacity: 1;
+        transform: none;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(16px);
     }
 }
 
 .chat_line {
-    animation: anim 30400ms;
+    animation: slide_1 30400ms;
     animation-fill-mode: forwards;
 }
 
@@ -65,7 +83,7 @@ body {
     font-size: 34px;
     font-weight: 900;
     word-break: break-word;
-    overflow:hidden;
+    overflow: hidden;
     filter: drop-shadow(0px 0px 0.2rem black);
 }
 

@@ -268,7 +268,7 @@ class Chatroom {
         msg.appendChild(msgInfo);
         msg.appendChild(msgContentSpan);
 
-        this.handleAnimationAndFading(msg);
+        // this.handleAnimationAndFading(msg);
         this.handleMessageLimit();
 
         document.getElementById("chat").appendChild(msg);

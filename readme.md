@@ -61,7 +61,7 @@ To configure the YouTube overlay, add one of the following parameters to the URL
 http://localhost:8080/?handle=@mychannel
 ```
 
-You will also need a YouTube livechat proxy configured (see the [YouTube Livechat Proxy](#youtube-livechat-proxy) section), or you can use this public proxy: `https://youtube-livechat-proxy.onrender.com` via the `server` parameter.
+You will also need a YouTube livechat proxy configured (see the [YouTube Livechat Proxy](#youtube-livechat-proxy) section).
 
 ### Twitch
 
@@ -146,7 +146,7 @@ To use the Twitch overlay, you need an authentication token. Follow the steps be
 
 ## YouTube Livechat Proxy
 
-The YouTube overlay requires a proxy server to communicate with YouTube's live chat API. You can set up your own proxy server using the code and instructions available in the [livestream-chat-overlay](https://github.com/ericknbe/livestream-chat-overlay) repository, or you can use the public proxy at `https://youtube-livechat-proxy.onrender.com`.
+The YouTube overlay requires a proxy server to communicate with YouTube's live chat API. You can set up your own proxy server using the code and instructions available in the [livestream-chat-overlay](https://github.com/ericknbe/livestream-chat-overlay) repository.
 
 By default, the script expects the proxy to be at `localhost:3000/chat`, but you can change it using the `server` and `protocol` parameters.
 
@@ -214,7 +214,7 @@ Para configurar o overlay do YouTube, adicione um dos seguintes parâmetros na U
 http://localhost:8080/?handle=@meucanal
 ```
 
-Você também precisará de um proxy do livechat do YouTube configurado (veja a seção [Proxy do Livechat do YouTube](#proxy-do-livechat-do-youtube), ou use esse proxy público: ```https://youtube-livechat-proxy.onrender.com``` pelo parametro "server").
+Você também precisará de um proxy do livechat do YouTube configurado (veja a seção [Proxy do Livechat do YouTube](#proxy-do-livechat-do-youtube)).
 
 ### Twitch
 
