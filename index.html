@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap">
     <script>
         const loadParams = new URLSearchParams(window.location.search);
-        const pathParts = window.location.pathname.split('/').filter(Boolean); // Divide o caminho e remove partes vazias
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const possibleQueryParams = ["handle", "id", "channelId", "value"];
 
-        // Função para carregar um script e retornar uma Promise
         function loadScript(src) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement("script");
@@ -22,61 +22,52 @@
             });
         }
 
-        // Função para detectar padrões (Channel ID, Handle, Video ID)
         function detectPattern(value) {
-            if (value.startsWith("UC") && value.length === 24) {
-                return "channelId"; // YouTube Channel ID
-            } else if (value.startsWith("@")) {
-                return "handle"; // YouTube Handle
-            } else if (value.length === 11 && /^[A-Za-z0-9\-_]+$/.test(value)) {
-                return "id"; // YouTube Video ID
+            if (typeof value !== "string" || value === null || value === undefined) {
+                return null;
             }
-            return null; // Nenhum padrão reconhecido
+            if (value.startsWith("UC") && value.length === 24) {
+                return "channelId";
+            } else if (value.length === 11 && /^[A-Za-z0-9\-_]+$/.test(value)) {
+                return "id";
+            } else if (/^[A-Za-z0-9_]+$/.test(value) || value.startsWith("@")) { // Aceita handles sem "@"
+                return "handle";
+            }
+            return null;
         }
 
-        // Verificação de parâmetros para YouTube (query e caminho)
         const hasYouTubeParams = (() => {
-            // Verifica query string
-            const possibleQueryParams = ["handle", "id", "channelId", "value"];
             for (const paramName of possibleQueryParams) {
                 const rawParam = loadParams.get(paramName);
                 if (rawParam && detectPattern(rawParam)) {
                     return true;
                 }
             }
-
-            // Verifica caminho da URL
             for (const part of pathParts) {
                 if (detectPattern(part)) {
                     return true;
                 }
             }
-
-            return false; // Nenhum parâmetro ou padrão encontrado
+            return false;
         })();
 
-        // Verificação de parâmetros para Twitch com alias "channel" (query apenas)
         const hasTwitchParams = (() => {
-            const twitchParam = loadParams.get("twitch") || loadParams.get("channel");
-            return twitchParam && loadParams.has("token");
+            return loadParams.get("twitch") || loadParams.get("channel");
         })();
 
-        // Verificação de parâmetros para Kick (query apenas)
         const hasKickParams = loadParams.has("kick");
 
-        // Carregar scripts do YouTube se os parâmetros existirem
         if (hasYouTubeParams) {
             const detectedParam = pathParts.find(part => detectPattern(part)) ||
                 possibleQueryParams.map(p => loadParams.get(p)).find(p => detectPattern(p));
             if (detectedParam) {
-                window.youtubeChannelId = detectedParam; // Passa o valor para o script
+                window.youtubeChannelId = detectedParam;
             }
             loadScript("assets/scripts/platforms/youtube.js")
                 .then(() => console.log("YouTube script loaded."))
                 .catch(err => console.error(err));
         }
 
-        // Carregar scripts do Twitch se os parâmetros existirem
         if (hasTwitchParams) {
             const twitchDependencies = [
                 "assets/scripts/dependencies/jquery.min.js",
@@ -87,7 +78,6 @@
             ];
             const twitchMainScript = "assets/scripts/platforms/twitch.js";
 
-            // Carregar todas as dependências em sequência
             twitchDependencies.reduce((promise, src) => {
                 return promise.then(() => loadScript(src));
             }, Promise.resolve())
@@ -96,14 +86,12 @@
                 .catch(err => console.error(err));
         }
 
-        // Carregar scripts do Kick se os parâmetros existirem
         if (hasKickParams) {
             loadScript("assets/scripts/platforms/kick.js")
                 .then(() => console.log("Kick script loaded."))
                 .catch(err => console.error(err));
         }
 
-        // Se nenhum parâmetro for fornecido
         if (!hasYouTubeParams && !hasTwitchParams && !hasKickParams) {
             console.log("No scripts loaded.");
         }

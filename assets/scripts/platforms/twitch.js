@@ -23,23 +23,33 @@ function escapeHtml(message) {
         .replace(/(>)(?!\()/g, "&gt;");
 }
 
-// Função para fazer requisições à API da Twitch com Client-ID e Token
-function TwitchAPI(url, token) {
-    return $.ajax({
-        url: url,
-        method: 'GET',
-        headers: {
-            'Client-ID': Chat.info.clientId, // Usar o Client-ID de Chat.info
-            'Authorization': 'Bearer ' + token
-        }
-    });
+// Função para fazer requisições à API da Twitch
+function TwitchAPI(endpoint) {
+    // Se pelo menos o token estiver na URL, usar a API direta da Twitch
+    if (Chat.info.token) {
+        const clientId = Chat.info.clientId || 'gp762nuuoqcoxypju8c569th9wz7q5'; // Fallback para clientId padrão
+        return $.ajax({
+            url: `https://api.twitch.tv/helix/${endpoint}`,
+            method: 'GET',
+            headers: {
+                'Client-ID': clientId,
+                'Authorization': 'Bearer ' + Chat.info.token
+            }
+        });
+    } else {
+        // Caso contrário, usar o proxy do servidor
+        return $.ajax({
+            url: `/twitch-api/${endpoint}`,
+            method: 'GET'
+        });
+    }
 }
 
 Chat = {
     info: {
         channel: null,
-        token: $.QueryString.token,
-        clientId: $.QueryString.clientId || 'gp762nuuoqcoxypju8c569th9wz7q5', // Pega da URL ou usa o padrão
+        token: $.QueryString.token || null, // Token da URL como fallback
+        clientId: $.QueryString.clientId || 'gp762nuuoqcoxypju8c569th9wz7q5', // Client ID da URL ou padrão
         animate: ('animate' in $.QueryString ? ($.QueryString.animate.toLowerCase() === 'true') : false),
         showBots: ('bots' in $.QueryString ? ($.QueryString.bots.toLowerCase() === 'true') : false),
         hideCommands: ('hide_commands' in $.QueryString ? ($.QueryString.hide_commands.toLowerCase() === 'true') : false),
@@ -126,23 +136,22 @@ Chat = {
 
     load: function (callback) {
         const loadChannel = () => {
-            TwitchAPI('https://api.twitch.tv/helix/users?login=' + Chat.info.channel, Chat.info.token).done(function (res) {
+            TwitchAPI('users?login=' + Chat.info.channel).done(function (res) {
                 if (res.data.length === 0) {
                     console.error('Canal não encontrado');
-                    setTimeout(loadChannel, 60000); // Tentar novamente após 30 segundos
+                    setTimeout(loadChannel, 60000);
                     return;
                 }
                 Chat.info.channelID = res.data[0].id;
                 Chat.loadEmotes(Chat.info.channelID);
 
-                // Load badges
-                TwitchAPI('https://api.twitch.tv/helix/chat/badges/global', Chat.info.token).done(function (global) {
+                TwitchAPI('chat/badges/global').done(function (global) {
                     global.data.forEach(badgeSet => {
                         badgeSet.versions.forEach(version => {
                             Chat.info.badges[badgeSet.set_id + ':' + version.id] = version.image_url_4x;
                         });
                     });
-                    TwitchAPI('https://api.twitch.tv/helix/chat/badges?broadcaster_id=' + encodeURIComponent(Chat.info.channelID), Chat.info.token).done(function (channel) {
+                    TwitchAPI('chat/badges?broadcaster_id=' + encodeURIComponent(Chat.info.channelID)).done(function (channel) {
                         channel.data.forEach(badgeSet => {
                             badgeSet.versions.forEach(version => {
                                 Chat.info.badges[badgeSet.set_id + ':' + version.id] = version.image_url_4x;
@@ -161,31 +170,17 @@ Chat = {
 
                 if (!Chat.info.hideBadges) {
                     $.getJSON('https://api.ffzap.com/v1/supporters')
-                        .done(function (res) {
-                            Chat.info.ffzapBadges = res;
-                        })
-                        .fail(function () {
-                            Chat.info.ffzapBadges = [];
-                        });
+                        .done(function (res) { Chat.info.ffzapBadges = res; })
+                        .fail(function () { Chat.info.ffzapBadges = []; });
                     $.getJSON('https://api.betterttv.net/3/cached/badges')
-                        .done(function (res) {
-                            Chat.info.bttvBadges = res;
-                        })
-                        .fail(function () {
-                            Chat.info.bttvBadges = [];
-                        });
-
+                        .done(function (res) { Chat.info.bttvBadges = res; })
+                        .fail(function () { Chat.info.bttvBadges = []; });
                     $.getJSON('https://api.chatterino.com/badges')
-                        .done(function (res) {
-                            Chat.info.chatterinoBadges = res.badges;
-                        })
-                        .fail(function () {
-                            Chat.info.chatterinoBadges = [];
-                        });
+                        .done(function (res) { Chat.info.chatterinoBadges = res.badges; })
+                        .fail(function () { Chat.info.chatterinoBadges = []; });
                 }
 
-                // Load cheers images
-                TwitchAPI("https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=" + Chat.info.channelID, Chat.info.token).done(function (res) {
+                TwitchAPI('bits/cheermotes?broadcaster_id=' + Chat.info.channelID).done(function (res) {
                     res.data.forEach(cheer => {
                         Chat.info.cheers[cheer.prefix] = {};
                         cheer.tiers.forEach(tier => {
@@ -200,7 +195,7 @@ Chat = {
                 callback(true);
             }).fail(function () {
                 console.error('Erro ao carregar canal');
-                setTimeout(loadChannel, 60000); // Tentar novamente após 30 segundos
+                setTimeout(loadChannel, 60000);
             });
         };
 
@@ -516,7 +511,7 @@ Chat = {
 };
 
 $(document).ready(function () {
-    const channelParam = $.QueryString.twitch || $.QueryString.channel; // Tenta "twitch" primeiro, depois "channel"
+    const channelParam = $.QueryString.twitch || $.QueryString.channel;
     if (channelParam) {
         Chat.connect(channelParam.toLowerCase());
     } else {

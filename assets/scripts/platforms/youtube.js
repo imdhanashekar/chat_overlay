@@ -361,44 +361,53 @@ const SETTINGS = {
 	const pathParts = window.location.pathname.split('/').filter(Boolean); // Captura partes do caminho
 	const initialChatParams = {};
 
-	// Função para detectar padrões (Channel ID, Handle, Video ID)
 	function detectPattern(value) {
+		if (typeof value !== "string" || value === null || value === undefined) {
+			return null;
+		}
 		if (value.startsWith("UC") && value.length === 24) {
-			return "channelId"; // YouTube Channel ID
-		} else if (value.startsWith("@")) {
-			return "handle"; // YouTube Handle
+			return "channelId";
 		} else if (value.length === 11 && /^[A-Za-z0-9\-_]+$/.test(value)) {
-			return "id"; // YouTube Video ID
+			return "id";
+		} else if (/^[A-Za-z0-9_]+$/.test(value) || value.startsWith("@")) { // Aceita handles sem "@"
+			return "handle";
 		}
-		return null; // Nenhum padrão reconhecido
+		return null;
 	}
 
-	// Verifica query string primeiro
-	const possibleQueryParams = ["handle", "id", "channelId", "value"];
-	for (const paramName of possibleQueryParams) {
-		const rawParam = params.get(paramName);
-		if (rawParam) {
-			const type = detectPattern(rawParam);
-			if (type) {
-				initialChatParams[type] = rawParam;
-				break; // Para após encontrar o primeiro parâmetro válido na query
+	// Simplificar usando window.youtubeChannelId se disponível
+	if (window.youtubeChannelId) {
+		const type = detectPattern(window.youtubeChannelId);
+		if (type) {
+			initialChatParams[type] = window.youtubeChannelId;
+		}
+	} else {
+		// Fallback: verifica query string
+		const possibleQueryParams = ["handle", "id", "channelId", "value"];
+		for (const paramName of possibleQueryParams) {
+			const rawParam = params.get(paramName);
+			if (rawParam) {
+				const type = detectPattern(rawParam);
+				if (type) {
+					initialChatParams[type] = rawParam;
+					break;
+				}
+			}
+		}
+
+		// Se nada na query, verifica o caminho
+		if (!initialChatParams.handle && !initialChatParams.id && !initialChatParams.channelId) {
+			for (const part of pathParts) {
+				const type = detectPattern(part);
+				if (type) {
+					initialChatParams[type] = part;
+					break;
+				}
 			}
 		}
 	}
 
-	// Se nada for encontrado na query, verifica o caminho
-	if (!initialChatParams.handle && !initialChatParams.id && !initialChatParams.channelId) {
-		for (const part of pathParts) {
-			const type = detectPattern(part);
-			if (type) {
-				initialChatParams[type] = part;
-				break; // Para após encontrar o primeiro valor válido no caminho
-			}
-		}
-	}
-
-	// Capturar o idioma do navegador
-	const browserLanguage = navigator.language || "en-US"; // Padrão para "en-US" se não disponível
+	const browserLanguage = navigator.language || "en-US";
 
 	if (!initialChatParams.handle && !initialChatParams.id && !initialChatParams.channelId) {
 		console.log("No chat parameters provided in URL (query or path)");
