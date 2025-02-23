@@ -1,3 +1,6 @@
+Below is the updated README.md with the modifications reflecting the recent changes, particularly regarding the YouTube `handle` parameter, which now accepts values with or without the "@" prefix. The content is provided in both English and Portuguese, as per the original structure.
+
+---
 
 ### README.md (English)
 
@@ -52,13 +55,13 @@ To get started, follow the steps below:
 
 To configure the YouTube overlay, add one of the following parameters to the URL:
 
-- **`handle`**: The channel handle (e.g., `@mychannel`).
+- **`handle`**: The channel handle (e.g., `mychannel` or `@mychannel`). The "@" is optional.
 - **`id`**: The video ID (e.g., `dQw4w9WgXcQ`).
 - **`channelId`**: The channel ID (e.g., `UCxxxxxxxxxxxxxxxxxxxxxx`).
 
 **Example:**
 ```
-http://localhost:8080/?handle=@mychannel
+http://localhost:8080/?handle=mychannel
 ```
 
 You will also need a YouTube livechat proxy configured (see the [YouTube Livechat Proxy](#youtube-livechat-proxy) section), or you can use this public proxy: `https://youtube-livechat-proxy.onrender.com/chat` via the `server` parameter.
@@ -69,6 +72,7 @@ To configure the Twitch overlay, provide the following parameters in the URL:
 
 - **`twitch`**: The Twitch channel name (e.g., `mychannel`).
 - **`token`**: The Twitch authentication token (see [Generating the Twitch Token](#generating-the-twitch-token)).
+- **`clientId`**: (Optional) Twitch application client ID. If not provided, uses the default.
 
 **Example:**
 ```
@@ -120,10 +124,12 @@ These parameters can be used on all platforms:
 
 ### Twitch Specific Parameters
 
-- **`token`**: Twitch authentication token (required).
+- **`token`**: Twitch authentication token (required for direct API use).
   - Example: `?token=yourtoken`
-- **`clientId`**: Twitch application client ID. Default: `gp762nuuoqcoxypju8c569th9wz7q5`.
+- **`clientId`**: Twitch application client ID. If not provided, uses the default `gp762nuuoqcoxypju8c569th9wz7q5`.
   - Example: `?clientId=yourclientid`
+
+**Note:** If `token` is provided in the URL, the client will use the Twitch API directly. Otherwise, it will use the server proxy with credentials from `.env`.
 
 ### Kick Specific Parameters
 
@@ -205,16 +211,16 @@ Para começar, siga os passos abaixo:
 
 Para configurar o overlay do YouTube, adicione um dos seguintes parâmetros na URL:
 
-- **`handle`**: O handle do canal (ex.: `@meucanal`).
+- **`handle`**: O handle do canal (ex.: `meucanal` ou `@meucanal`). O "@" é opcional.
 - **`id`**: O ID do vídeo (ex.: `dQw4w9WgXcQ`).
 - **`channelId`**: O ID do canal (ex.: `UCxxxxxxxxxxxxxxxxxxxxxx`).
 
 **Exemplo:**
 ```
-http://localhost:8080/?handle=@meucanal
+http://localhost:8080/?handle=meucanal
 ```
 
-Você também precisará de um proxy do livechat do YouTube configurado (veja a seção [Proxy do Livechat do YouTube](#proxy-do-livechat-do-youtube), ou use esse proxy público: ```https://youtube-livechat-proxy.onrender.com/chat``` pelo parametro "server").
+Você também precisará de um proxy do livechat do YouTube configurado (veja a seção [Proxy do Livechat do YouTube](#proxy-do-livechat-do-youtube)), ou use esse proxy público: `https://youtube-livechat-proxy.onrender.com/chat` pelo parâmetro `server`.
 
 ### Twitch
 
@@ -222,6 +228,7 @@ Para configurar o overlay do Twitch, forneça os seguintes parâmetros na URL:
 
 - **`twitch`**: O nome do canal Twitch (ex.: `meucanal`).
 - **`token`**: O token de autenticação da Twitch (veja [Gerando o Token da Twitch](#gerando-o-token-da-twitch)).
+- **`clientId`**: (Opcional) Client ID da aplicação Twitch. Se não fornecido, usa o padrão.
 
 **Exemplo:**
 ```
@@ -273,10 +280,12 @@ Esses parâmetros podem ser usados em todas as plataformas:
 
 ### Parâmetros Específicos do Twitch
 
-- **`token`**: Token de autenticação da Twitch (obrigatório).
+- **`token`**: Token de autenticação da Twitch (obrigatório para uso direto da API).
   - Exemplo: `?token=seutoken`
-- **`clientId`**: Client ID da aplicação Twitch. Padrão: `gp762nuuoqcoxypju8c569th9wz7q5`.
+- **`clientId`**: Client ID da aplicação Twitch. Se não fornecido, usa o padrão `gp762nuuoqcoxypju8c569th9wz7q5`.
   - Exemplo: `?clientId=seuclientid`
+
+**Nota:** Se `token` for fornecido na URL, o cliente usará a API direta da Twitch. Se não, usará o proxy do servidor com as credenciais do `.env`.
 
 ### Parâmetros Específicos do Kick
 
@@ -299,7 +308,7 @@ Para usar o overlay do Twitch, você precisa de um token de autenticação. Siga
 
 ## Proxy do Livechat do YouTube
 
-O overlay do YouTube requer um servidor proxy para se comunicar com a API de chat ao vivo do YouTube. O código e as instruções de configuração estão disponíveis no repositório [youtube-livechat-proxy](https://github.com/ericknbe/youtube-livechat-proxy). Siga as instruções no repositório para configurá-lo, ou use esse proxy público: ```https://youtube-livechat-proxy.onrender.com/chat``` pelo parametro "server").
+O overlay do YouTube requer um servidor proxy para se comunicar com a API de chat ao vivo do YouTube. O código e as instruções de configuração estão disponíveis no repositório [youtube-livechat-proxy](https://github.com/ericknbe/youtube-livechat-proxy). Siga as instruções no repositório para configurá-lo, ou use esse proxy público: `https://youtube-livechat-proxy.onrender.com/chat` pelo parâmetro `server`.
 
 Por padrão, o script espera que o proxy esteja em `localhost:3000/chat`, mas você pode alterá-lo usando os parâmetros `server` e `protocol`.
 
