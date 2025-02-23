@@ -66,6 +66,11 @@
 
         // Carregar scripts do YouTube se os parâmetros existirem
         if (hasYouTubeParams) {
+            const detectedParam = pathParts.find(part => detectPattern(part)) ||
+                possibleQueryParams.map(p => loadParams.get(p)).find(p => detectPattern(p));
+            if (detectedParam) {
+                window.youtubeChannelId = detectedParam; // Passa o valor para o script
+            }
             loadScript("assets/scripts/platforms/youtube.js")
                 .then(() => console.log("YouTube script loaded."))
                 .catch(err => console.error(err));
