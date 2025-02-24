@@ -417,8 +417,10 @@ Chat = {
         }
     },
 
-    clearChat: function () {
-        document.getElementById("chat").innerHTML = "";
+    clearChat: function(nick) {
+        setTimeout(function() {
+            $('.chat_line[data-nick=' + nick + ']').remove();
+        }, 200);
     },
 
     clearMessage: function (id) {
@@ -463,7 +465,7 @@ Chat = {
                             if (message.tags) Chat.clearMessage(message.tags['target-msg-id']);
                             return;
                         case "CLEARCHAT":
-                            Chat.clearChat();
+                            if (message.params[1]) Chat.clearChat(message.params[1]);
                             return;
                         case "PRIVMSG":
                             if (message.params[0] !== '#' + channel || !message.params[1]) return;
