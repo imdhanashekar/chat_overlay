@@ -469,9 +469,9 @@ const SETTINGS = {
 				const protocolParam = urlParams.get("protocol") || "http"; // Padrão é "http" se não especificado
 
 				// Validar o protocolo
-				const protocol = ["http", "https"].includes(protocolParam.toLowerCase())
-					? protocolParam.toLowerCase()
-					: "http"; // Se o protocolo for inválido, usa "http" como padrão
+				const protocol = ["http", "https"].includes(protocolParam.toLowerCase()) ?
+					protocolParam.toLowerCase() :
+					"http"; // Se o protocolo for inválido, usa "http" como padrão
 
 				// Determinar a URL base
 				let baseUrl;
@@ -480,9 +480,9 @@ const SETTINGS = {
 					baseUrl = serverParam;
 				} else {
 					// Se é apenas o domínio ou caminho, adiciona o protocolo especificado e o caminho padrão /chat
-					baseUrl = serverParam.includes("/")
-						? `${protocol}://${serverParam}`
-						: `${protocol}://${serverParam}/chat`;
+					baseUrl = serverParam.includes("/") ?
+						`${protocol}://${serverParam}` :
+						`${protocol}://${serverParam}/chat`;
 				}
 
 				// Construir a URL com os parâmetros adicionais
@@ -559,7 +559,10 @@ const SETTINGS = {
 							const messageText = formatMessage(renderer.message || {
 								simpleText: ""
 							});
-							const fullMessage = amount ? `${amount} ${messageText}` : messageText;
+							const authorName = formatMessage(renderer.authorName);
+							// Formata a mensagem com o nome do autor
+							const fullMessage = `${authorName} > ${amount}${messageText ? " | " + messageText : ""}`;
+
 							return {
 								type: actionType,
 								data: {
@@ -567,7 +570,7 @@ const SETTINGS = {
 									id: renderer.id,
 									author: {
 										id: renderer.authorExternalChannelId || "",
-										name: formatMessage(renderer.authorName),
+										name: authorName,
 										badges: renderer.authorBadges?.map(badge => {
 											const r = badge.liveChatAuthorBadgeRenderer;
 											return {
@@ -583,6 +586,7 @@ const SETTINGS = {
 								}
 							};
 						}
+
 						case "liveChatMembershipItemRenderer": {
 							const renderer = item[rendererType];
 							const headerText = formatMessage(renderer.headerSubText || {
@@ -591,7 +595,12 @@ const SETTINGS = {
 							const messageText = formatMessage(renderer.message || {
 								simpleText: ""
 							});
-							const fullMessage = headerText ? `${headerText} ${messageText}` : `Welcome! ${messageText}`;
+							const authorName = formatMessage(renderer.authorName);
+							// Pega o tooltip do badge para indicar o tipo de membro
+							const memberType = renderer.authorBadges?.[0]?.liveChatAuthorBadgeRenderer?.tooltip || "Membro";
+							// Formata a mensagem com o nome do autor
+							const fullMessage = `${authorName} > ${memberType} | ${headerText}${messageText ? " " + messageText : ""}`.trim();
+
 							return {
 								type: actionType,
 								data: {
@@ -599,7 +608,7 @@ const SETTINGS = {
 									id: renderer.id,
 									author: {
 										id: renderer.authorExternalChannelId || "",
-										name: formatMessage(renderer.authorName),
+										name: authorName,
 										badges: renderer.authorBadges?.map(badge => {
 											const r = badge.liveChatAuthorBadgeRenderer;
 											return {
@@ -903,9 +912,9 @@ const SETTINGS = {
 					messageDiv.innerHTML = `<span class="message"> ${messageHTML}</span>`;
 				} else if (author.id) {
 					// Construção do HTML com espaçamento controlado
-					const usernameHTML = userHighlights[author.id]
-						? `<span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`
-						: `<span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`;
+					const usernameHTML = userHighlights[author.id] ?
+						`<span style="background: ${userHighlights[author.id]}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>` :
+						`<span style="color:${userColors[author.id]};" class="username">${userAvatars[author.id]}</span>`;
 
 					// Montagem sem espaços implícitos
 					messageDiv.innerHTML = `${badgeHTML} ${usernameHTML}<span class="colon">:</span><span class="message"> ${messageHTML}</span>`;
