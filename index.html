@@ -4,12 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <script>
-      console.log('API Key:', 'YOUTUBE_API_KEY');
-      console.log('Twitch Channel ID:', 'TWITCH_CHANNEL_ID');
-      console.log('Twitch OAuth Token:', 'TWITCH_OAUTH_TOKEN');
-    </script>
+    <title>Unified Chat</title>
     <link rel="stylesheet" href="assets/styles/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap">
     <script>
@@ -35,34 +30,15 @@
                 return "channelId";
             } else if (value.length === 11 && /^[A-Za-z0-9\-_]+$/.test(value)) {
                 return "id";
-            } else if (/^[A-Za-z0-9_]+$/.test(value) || value.startsWith("@")) { // Aceita handles sem "@"
+            } else if (/^[A-Za-z0-9_]+$/.test(value) || value.startsWith("@")) {
                 return "handle";
             }
             return null;
         }
 
-        const hasYouTubeParams = (() => {
-            for (const paramName of possibleQueryParams) {
-                const rawParam = loadParams.get(paramName);
-                if (rawParam && detectPattern(rawParam)) {
-                    return true;
-                }
-            }
-            for (const part of pathParts) {
-                if (detectPattern(part)) {
-                    return true;
-                }
-            }
-            return false;
-        })();
+        // --- NEW UNIFIED CHAT LOGIC ---
 
-        const hasTwitchParams = (() => {
-            return loadParams.get("twitch") || loadParams.get("channel");
-        })();
-
-        const hasKickParams = loadParams.has("kick");
-
-        if (hasYouTubeParams) {
+        const loadYouTubeChat = () => {
             const detectedParam = pathParts.find(part => detectPattern(part)) ||
                 possibleQueryParams.map(p => loadParams.get(p)).find(p => detectPattern(p));
             if (detectedParam) {
@@ -71,9 +47,9 @@
             loadScript("assets/scripts/platforms/youtube.js")
                 .then(() => console.log("YouTube script loaded."))
                 .catch(err => console.error(err));
-        }
+        };
 
-        if (hasTwitchParams) {
+        const loadTwitchChat = () => {
             const twitchDependencies = [
                 "assets/scripts/dependencies/jquery.min.js",
                 "assets/scripts/dependencies/irc-message.js",
@@ -89,17 +65,21 @@
                 .then(() => loadScript(twitchMainScript))
                 .then(() => console.log("Twitch scripts loaded."))
                 .catch(err => console.error(err));
-        }
+        };
 
-        if (hasKickParams) {
+        const loadKickChat = () => {
             loadScript("assets/scripts/platforms/kick.js")
                 .then(() => console.log("Kick script loaded."))
                 .catch(err => console.error(err));
-        }
+        };
 
-        if (!hasYouTubeParams && !hasTwitchParams && !hasKickParams) {
-            console.log("No scripts loaded.");
-        }
+        // Load all three scripts simultaneously
+        document.addEventListener('DOMContentLoaded', () => {
+            loadYouTubeChat();
+            loadTwitchChat();
+            loadKickChat();
+        });
+
     </script>
 </head>
 
